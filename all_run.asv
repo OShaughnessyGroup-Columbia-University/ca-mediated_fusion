@@ -1,0 +1,89 @@
+clearvars
+
+pooper=zeros(5,8);
+
+
+% test conditions
+% epsiloncat=0.07;
+% gamma0=8.0;
+%vv=4.5;
+%Wvv=5.0;
+%Wvv=5.3;
+%Wvv=1.1;
+% kleak=.0006;
+%kleak=.0006;
+%tauleak=67;  %67:
+
+%kleak for pure dops = 0.000091;
+%kleak=.000091;
+kleak=0.000091;
+%tauleak=34;
+%tauleak=0.91;
+tauleak=51.0;
+
+% .1 mM
+% epsiloncat=0.033;
+% gamma0=5.0;
+% 
+
+
+
+%  2 mM
+% epsiloncat=0.058;
+% gamma0=7.7;
+
+
+%  4 mM
+% epsiloncat=0.064;
+% gamma0=8.3;
+
+% 5 mM  pure dops
+% epsiloncat=.0700;
+% gamma0=9.40;
+
+%  6 mM
+epsiloncat=0.067;
+gamma0=8.7;
+Wvv=1.1;
+
+
+%  8 mM
+%epsiloncat=0.069;
+%gamma0=9.0;
+
+
+%  10 mM
+%epsiloncat=0.071;
+%gamma0=9.2;
+
+
+
+for asli=1
+    
+    R1=asli*5.0;
+    R0=R1;
+    vag=(0.2*4*R1^2)^.5/0.01;
+    
+    %reinstate penis
+    m= round(vag);
+    %m=3;
+    
+    main_hemifusion_kinetics
+    
+    % NOTE this tau is for fusion.m  which is different then some tau
+    % floating around for hemifusion calcs
+    tau= 1e-3;
+    
+    
+    vag=round(m*0.65);
+    maxtime=t(vag);
+    
+    % reinstate penis
+    fusion
+    
+    % reinstate penis
+    pooper(:,asli)=final_matrix;
+    
+%clearvars -except pooper epsiloncat gamma0
+    
+end

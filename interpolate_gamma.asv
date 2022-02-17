@@ -1,0 +1,15 @@
+tau=1e-4;
+
+x=t;
+y=gamma;
+
+
+xi = 0:tau:30; 
+yi = interp1(x,y,xi); 
+
+
+y=Ahd;
+yi = interp1(x,y,xi); 
+
+Aves=Aves0-Ahd;
+

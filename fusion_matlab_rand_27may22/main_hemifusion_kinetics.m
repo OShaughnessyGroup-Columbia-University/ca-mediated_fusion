@@ -1,0 +1,185 @@
+%  main file for hemifusion kinetics
+clear workspace
+
+input_hemifusion_kinetics
+
+determine_mesh
+
+
+Ahd(1)=pi*(sin(x(n1))*R1)^2;
+
+Aflat=Ahd*0;
+Avestotal=Aflat;
+Aves=Aflat;
+theta=Aflat;
+tension=Aflat;
+%volume=Aflat;
+
+volume(1)=4/3*pi*R0^3;
+tension(1)=gamma0;
+
+[rhostar1,tension(1),Aflat(1),theta(1),Avestotal(1),Aves(1)]=calculate_rhostar_strong_adhesion(gamma0,kdelta,kbar,Aves1,0,epsiloncat,Wvv,volume);
+rhostar2=rhostar1;
+
+
+
+
+for k=1:m
+    
+    k
+    
+    n1=n1-1;
+    n2=n2-1;
+    
+   % shrink the rho vector, x vector
+   x1_temp=x1;
+   x1=zeros(n1,1);
+   rho1_temp=rho1;
+   rho1=zeros(n1,1);
+   delta1_temp=delta1;
+   delta1=zeros(n1,1);
+   
+   for i=1:n1
+       
+       rho1(i)=rho1_temp(i);
+       x1(i)=x1_temp(i);
+       delta1(i)=delta1_temp(i);
+   end
+   
+   rho1(n1)=rhostar1;
+   rho1_old=rho1;
+   
+   for i=1:n1
+       
+   rho_matrix1(i,k)=rho1(i);
+   
+   end
+
+
+   
+    % shrink the rho vector, x vector
+   x2_temp=x2;
+   x2=zeros(n2,1);
+   rho2_temp=rho2;
+   rho2=zeros(n2,1);
+   delta2_temp=delta2;
+   delta2=zeros(n2,1);
+   
+   for i=1:n2
+       
+       rho2(i)=rho2_temp(i);
+       x2(i)=x2_temp(i);
+       delta2(i)=delta2_temp(i);
+   end
+   
+   rho2(n2)=rhostar2;
+   rho2_old=rho2;
+   
+   for i=1:n2
+       
+   rho_matrix2(i,k)=rho2(i);
+   
+end
+   
+   
+   
+   
+   % choose window of possible tau values
+
+tau_min=0.01*delta1(n1) * R1^2 * (pi-x(n1)) / (D *rhostar1);
+tau_max=100000*delta1(n1) * R1^2 * (pi-x(n1)) / (D *rhostar2);
+tau= 0.5*(tau_min+tau_max);
+   
+   
+   for p=1:w
+       
+
+d1=D*tau/(2*R1^2);
+
+   
+  [rho1]=diffusion_hemifusion_kinetics(rho1_old,n1,delta1,phi1,d1);
+   
+   
+d2=D*tau/(2*R2^2);
+
+   
+  [rho2]=diffusion_hemifusion_kinetics(rho2_old,n2,delta2,phi2,d2);
+
+
+
+% check to see about tau value
+% determine new value of tau timestep
+
+H1=2*pi*R1^2*sum(rho1.*(sin(x1)).*delta1);
+H2=2*pi*R2^2*sum(rho2.*(sin(x2)).*delta2);
+
+H=H1+H2;
+
+F=-2*pi*R1^2*rhostar1*(cos(x1(n1))+1) - 2*pi*R2^2*rhostar2*(cos(x2(n2))+1)  + 2*pi*(sin(x2(n2))*R2)^2;
+
+
+if H > F
+    tau_max=tau;
+    tau=0.5*(tau+tau_min);
+   
+else
+    tau_min=tau;
+    tau=0.5*(tau+tau_max);
+   
+   
+end
+
+   end
+
+
+
+Ahd(k+1)=pi*(sin(x(n1))*R1)^2;
+Ahd_large(k+1)=pi*(sin(x2(n2))*R2)^2;
+t(k+1)=t(k)+tau;
+
+%function[rhostar,tension,Aflat]=calculate_rhostar_strong_adhesion(gamma0,kdelta,kbar,Aves,Ahd,epsiloncat,Wvv)
+
+%leakage
+
+leakrate= -kleak * 8 * pi * R0 * tension(k) ;
+%leakrate=-0.001;
+
+if abs(leakrate*tau)<volume(1)
+    volume(k+1)=volume(k)+leakrate*tau;
+    %accessory=7 will show up just so i can see if shit is leaking in
+    %command window
+    accessory=7
+else
+    volume(k+1)=volume(k);
+end
+%spanishvagina=volume+leakrate*tau
+
+
+% with strong adhesion (i.e. rand experiments)
+[rhostar1,tension(k+1),Aflat(k+1),theta(k+1),Avestotal(k+1),Aves(k+1)]=calculate_rhostar_strong_adhesion(gamma0,kdelta,kbar,Aves1,Ahd(k+1),epsiloncat,Wvv,volume(k+1));
+rhostar2=rhostar1;
+
+% without strong adhesion (i.e. nikolaus et al)
+%[rhostar1]=calculate_rhostar(gamma0,kdelta,kbar,Aves1,W,Ahd(k+1),epsiloncat,H1,H);
+%[rhostar2]=calculate_rhostar(gamma0,kdelta,kbar,Aves2,W,Ahd(k+1),epsiloncat,H2,H);
+
+%new addition for fusion kinetics calc
+%gammahd(k)=(rhostar1-epsiloncat)*2*kdelta*2;
+gammahd(k+1)=2*tension(k+1)-Wvv;
+end
+
+gammahd(m+1)=gammahd(m);
+gammaves=tension;
+
+hemifusion_data(:,1)=t;
+hemifusion_data(:,2)=Ahd;
+hemifusion_data(:,3)=gammaves;
+hemifusion_data(:,4)=gammahd;
+hemifusion_data(:,5)=Aflat;
+hemifusion_data(:,6)=theta;
+hemifusion_data(:,7)=Avestotal;
+hemifusion_data(:,8)=Aves;
+hemifusion_data(:,9)=volume;
+
+plot(t,Ahd,t,Ahd_large)
+
